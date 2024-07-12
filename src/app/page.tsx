@@ -1,17 +1,40 @@
-import { log } from 'console';
 import getAllArticles from './(server)/api';
+import { Applink } from './shared/components/app-link';
+import { ArticlePreview } from './ArticlePreview';
 
-export default async function Home() {
+const ARTICLES_PER_PAGE = 10;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Record<string, string>;
+}) {
+  const page = Number.parseInt(searchParams['page'] ?? 1);
+
   const allArticles = await getAllArticles();
+
+  const articles = allArticles.slice(
+    (page - 1) * ARTICLES_PER_PAGE,
+    page * ARTICLES_PER_PAGE
+  );
+
+  const nextPageUrl = {
+    search: new URLSearchParams({
+      page: (page + 1).toString(),
+    }).toString(),
+  };
 
   return (
     <>
-      <h1>Kate blog</h1>
+      <h1>Kate blog. Page {page}</h1>
       <ul>
-        {allArticles.map((article) => (
-          <li key={article.name}>{article.header}</li>
+        {articles.map((article) => (
+          <li key={article.name}>
+            <ArticlePreview name={article.name} text={article.header} />
+          </li>
         ))}
       </ul>
+      <Applink href={nextPageUrl}>Next</Applink>
     </>
   );
 }
